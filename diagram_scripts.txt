@@ -1,0 +1,318 @@
+// ==========================================
+// UML DIAGRAMS FOR E-COMMERCE BACKEND
+// PASTE ANY OF THE MERMAID BLOCKS INTO https://mermaid.live
+// ==========================================
+
+// ------------------------------------------
+// 1. ER DIAGRAM (Entity Relationship)
+// Concept: Shows the database tables, their columns, primary/foreign keys, and how they relate to each other.
+// Creation: Created by mapping the Spring Data JPA @Entity classes and their annotations (@OneToMany, @ManyToOne) to database tables.
+// Usage: Used by developers and database admins to understand the PostgreSQL relational schema and cardinality.
+// ------------------------------------------
+erDiagram
+    USERS ||--o{ ORDERS : "places"
+    CATEGORIES ||--o{ PRODUCTS : "contains"
+    PRODUCTS ||--o{ ORDER_ITEMS : "added as"
+    ORDERS ||--o{ ORDER_ITEMS : "contains"
+    ORDERS ||--|| PAYMENTS : "has"
+
+    USERS {
+        Long id PK
+        String email
+        String name
+    }
+    PRODUCTS {
+        Long id PK
+        String name
+        Integer stock
+    }
+    ORDERS {
+        Long id PK
+        BigDecimal total_amount
+        String status
+    }
+    ORDER_ITEMS {
+        Long id PK
+        Integer quantity
+    }
+    PAYMENTS {
+        Long id PK
+        BigDecimal amount
+        String status
+    }
+
+// ------------------------------------------
+// 2. CLASS DIAGRAM
+// Concept: Illustrates the static structure of the Java application, detailing classes, attributes, methods, and visibility.
+// Creation: Created by extracting the core fields and public methods from the domain models located in 'src/main/java/com/ecommerce/model/entity'.
+// Usage: Used by software engineers to understand the Object-Oriented design and the blueprints of the application's data layer.
+// ------------------------------------------
+classDiagram
+    class User {
+        -Long id
+        -String email
+        -String password
+        -Role role
+        +register()
+        +login()
+    }
+    class Order {
+        -Long id
+        -String orderNumber
+        -OrderStatus status
+        +calculateTotal()
+        +addOrderItem()
+    }
+    class Product {
+        -Long id
+        -String name
+        -Integer stock
+        +decreaseStock()
+    }
+    User "1" <-- "*" Order : places
+    Order "1" *-- "*" OrderItem : contains
+
+// ------------------------------------------
+// 3. OBJECT DIAGRAM (Simulated via Class Instances)
+// Concept: A snapshot of the detailed state of a system at a point in time, showing real instances of classes and their current attribute values.
+// Creation: Created by mocking actual data that would exist in the JVM memory during a user transaction (e.g., user1 buying product1).
+// Usage: Used for debugging or explaining a specific, concrete scenario (like a specific cart checkout) rather than an abstract architecture.
+// ------------------------------------------
+classDiagram
+    class `user1: User` {
+        id = 1
+        name = "John Doe"
+        email = "john@demo.com"
+    }
+    class `order1: Order` {
+        id = 101
+        status = "COMPLETED"
+        totalAmount = 250.00
+    }
+    class `product1: Product` {
+        id = 5
+        name = "Headphones"
+        stock = 100
+    }
+    `user1: User` --> `order1: Order` : created
+    `order1: Order` --> `product1: Product` : contains 2x
+
+// ------------------------------------------
+// 4. COMPONENT DIAGRAM
+// Concept: Shows how the system is wired together at a high level, depicting the architectural modules and their dependencies.
+// Creation: Created by outlining the Spring Boot N-Tier architecture (Controllers -> Services -> Repositories -> Database).
+// Usage: Used by architects to provide a macro-level view of system boundaries, caching layers, and external database dependencies.
+// ------------------------------------------
+flowchart TD
+    UI[Frontend Client / Swagger] --> REST[REST Controllers]
+    REST --> Auth[Security / Auth Interceptor]
+    Auth --> Services[Service Layer]
+    Services <--> cache[(Redis Cache)]
+    Services --> Repos[JPA Repositories]
+    Repos <--> DB[(PostgreSQL Database)]
+
+// ------------------------------------------
+// 5. DEPLOYMENT DIAGRAM
+// Concept: Illustrates the physical deployment of artifacts on nodes. It shows where different software modules run in real hardware/virtual environments.
+// Creation: Created by analyzing the docker-compose.yml and the Spring Boot embedded Tomcat web server configurations.
+// Usage: Used by DevOps and system administrators to plan server infrastructure, container orchestration, and network ports.
+// ------------------------------------------
+flowchart TD
+    subgraph Client Device
+        Browser[Web Browser]
+    end
+    subgraph Docker Host Server
+        subgraph Spring Boot Container 
+            App[E-Commerce API :8080]
+        end
+        subgraph Database Container
+            DB[(PostgreSQL 15 :5432)]
+        end
+    end
+    Browser -- HTTPS --> App
+    App -- JDBC/TCP --> DB
+
+// ------------------------------------------
+// 6. PACKAGE DIAGRAM (Simulated via Flowchart)
+// Concept: Shows how classes are grouped into larger organizational units (packages) and the dependencies between those units.
+// Creation: Created by reading the directory structure of 'src/main/java/com/ecommerce' and mapping how imports flow downwards.
+// Usage: Used to enforce architectural rules (e.g., ensuring Repositories don't call Controllers) and keep the codebase organized.
+// ------------------------------------------
+flowchart TD
+    com_ecommerce --> config
+    com_ecommerce --> controller
+    com_ecommerce --> service
+    com_ecommerce --> repository
+    com_ecommerce --> model
+    model --> entity
+    model --> dto
+    model --> enums
+    controller -->|uses| service
+    service -->|uses| repository
+    repository -->|manages| entity
+
+// ------------------------------------------
+// 7. COMPOSITE STRUCTURE DIAGRAM
+// Concept: Explores the internal structure of a specific class or component, showing its internal parts, ports, and connectors.
+// Creation: Created by isolating the Order System and showing how the OrderController encapsulates the exact services it relies on to function.
+// Usage: Used to deeply understand complex subsystems without getting distracted by the entire application context.
+// ------------------------------------------
+flowchart LR
+    subgraph OrderSystem [Order Processing System]
+        OrderController((Controller))
+        OrderService[[Order Service]]
+        PaymentSvc[[Payment Service]]
+        OrderRepo[(Database DAO)]
+        OrderController --> OrderService
+        OrderService --> PaymentSvc
+        OrderService --> OrderRepo
+    end
+    Client --> OrderController
+
+// ------------------------------------------
+// 8. PROFILE DIAGRAM (Conceptual Stereotypes)
+// Concept: A mechanism to extend UML for specific domains or platforms by using Stereotypes, Tagged Values, and Constraints.
+// Creation: Created by mapping Spring Boot's specific IoC container component annotations (@RestController, @Service, etc.) as UML stereotypes.
+// Usage: Used to adapt standard UML to perfectly describe a Spring ecosystem, clarifying exactly what type of Bean each class represents.
+// ------------------------------------------
+classDiagram
+    class OrderController {
+        <<@RestController>>
+    }
+    class OrderService {
+        <<@Service>>
+    }
+    class OrderRepository {
+        <<@Repository>>
+    }
+    class Order {
+        <<@Entity>>
+    }
+
+// ------------------------------------------
+// 9. USE CASE DIAGRAM
+// Concept: Represents the functional requirements of a system from the user's perspective, showing actors and their interactions with system features.
+// Creation: Created by mapping the actual REST API endpoints and mapping them to the specific Roles (Customer vs Admin) that would hit them.
+// Usage: Used by product managers and stakeholders to verify that the system is building exactly what the end-users actually need to do.
+// ------------------------------------------
+flowchart LR
+    Customer([Customer])
+    Admin([Admin])
+    
+    subgraph E-Commerce System
+        UC1(Browse Products)
+        UC2(Place Order)
+        UC3(Manage Inventory)
+        UC4(View Reports)
+    end
+    
+    Customer --> UC1
+    Customer --> UC2
+    Admin --> UC3
+    Admin --> UC4
+
+// ------------------------------------------
+// 10. ACTIVITY DIAGRAM (Order Placement)
+// Concept: Flowchart-like diagram that illustrates the dynamic control flow from one activity to another, showing conditional logic.
+// Creation: Created by translating the Java code inside OrderService.createOrder() into visual if/else paths (checking stock, processing payment).
+// Usage: Used by developers to trace complex business logic and ensure edge cases (like rollbacks on insufficient stock) are accounted for.
+// ------------------------------------------
+stateDiagram-v2
+    [*] --> ValidateUser
+    ValidateUser --> CheckStock
+    CheckStock --> CreateOrder : Stock Available
+    CheckStock --> [*] : Insufficient Stock (Rollback)
+    CreateOrder --> ProcessPayment
+    ProcessPayment --> SaveToDB : Payment Success
+    ProcessPayment --> CancelOrder : Payment Failed
+    SaveToDB --> [*]
+
+// ------------------------------------------
+// 11. STATE MACHINE DIAGRAM (Order Lifecycle)
+// Concept: Shows the discrete states an object can be in during its lifecycle and the events that trigger transitions between those states.
+// Creation: Created by looking entirely at the OrderStatus enum (PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED) and mapping progression rules.
+// Usage: Used to govern data integrity, ensuring an order cannot jump magically from PENDING straight to DELIVERED without payment processing.
+// ------------------------------------------
+stateDiagram-v2
+    [*] --> PENDING
+    PENDING --> PROCESSING : Payment Verified
+    PROCESSING --> SHIPPED : Items Packed
+    SHIPPED --> DELIVERED : Received by Customer
+    PENDING --> CANCELLED : Payment Failed
+    PROCESSING --> CANCELLED : Admin Cancelled
+    DELIVERED --> [*]
+    CANCELLED --> [*]
+
+// ------------------------------------------
+// 12. SEQUENCE DIAGRAM
+// Concept: Shows how objects operate with one another and in what order chronologically, mapping messages passed back and forth along lifelines.
+// Creation: Created by following an HTTP request down the Spring Boot stack (Client -> Controller -> Service -> DB) step-by-step.
+// Usage: Very heavily used by backend engineers to debug API flow, see exactly where external calls are made, and verify transaction boundaries.
+// ------------------------------------------
+sequenceDiagram
+    actor Client
+    participant Controller as OrderController
+    participant Service as OrderService
+    participant PaySvc as PaymentService
+    participant DB as PostgreSQL
+
+    Client->>Controller: POST /api/orders
+    Controller->>Service: createOrder(request)
+    Service->>DB: Check Product Stock
+    DB-->>Service: Stock Available (100)
+    Service->>DB: Lock Row & Reduce Stock (-2)
+    Service->>PaySvc: processPayment()
+    PaySvc-->>Service: Payment SUCCESS
+    Service->>DB: Commit Transaction
+    Controller-->>Client: 200 OK (OrderDTO)
+
+// ------------------------------------------
+// 13. COMMUNICATION DIAGRAM (Simulated)
+// Concept: Similar to a sequence diagram but focuses on the structural relationships between the sender and receiver rather than chronological lifelines.
+// Creation: Created by taking the sequence diagram steps and attaching the numeric chronological order directly to the relationship arrows.
+// Usage: Used to easily see which objects talk to which other objects the most, highlighting potential bottlenecks or coupling.
+// ------------------------------------------
+flowchart TD
+    Client -- "1. POST /order" --> Controller
+    Controller -- "2. createOrder()" --> Service
+    Service -- "3. processPayment()" --> PaySvc
+    Service -- "4. save()" --> DB
+
+// ------------------------------------------
+// 14. INTERACTION OVERVIEW DIAGRAM
+// Concept: A hybrid of Activity and Sequence diagrams. It provides a high-level overview of control flow where nodes can be entire sequence blocks.
+// Creation: Created by visually wrapping the 'Main Processing Sequence' into a single macro-state representing the checkout sequence.
+// Usage: Used to break down massive, overly complex sequence diagrams into readable, modular chunks (Init, Process, Final).
+// ------------------------------------------
+stateDiagram-v2
+    state "Initialization" as Init
+    state "Main Processing Sequence" as Process {
+        state "Check Inventory" as Inv
+        state "Charge Card" as Card
+    }
+    state "Finalization" as Final
+    
+    [*] --> Init
+    Init --> Process
+    Process --> Final
+    Final --> [*]
+
+// ------------------------------------------
+// 15. TIMING DIAGRAM
+// Concept: Focuses heavily on the timing constraints and execution duration of messages passed between objects over a specific timeframe.
+// Creation: Created by estimating the milliseconds/seconds required for Network IO, Controller processing, and Database ACID transactions mapping.
+// Usage: Used to identify performance bottlenecks, optimize database locking time, and set proper timeout configurations.
+// ------------------------------------------
+gantt
+    title Typical Request Lifecycle Timeframe
+    dateFormat  s
+    axisFormat  %S
+    
+    section HTTP Request
+    Network Transit : 0, 1s
+    Controller Parsing : 1, 2s
+    
+    section DB Transaction
+    Read Constraints : 2, 4s
+    Process Payment : 4, 7s
+    Write Commit : 7, 8s

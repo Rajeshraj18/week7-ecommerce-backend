@@ -1,0 +1,6 @@
+com\ecommerce\controller\ProductControllerTest.class
+com\ecommerce\EcommerceApplicationTests.class
+com\ecommerce\controller\OrderControllerTest.class
+com\ecommerce\service\UserServiceTest.class
+com\ecommerce\service\ProductServiceTest.class
+com\ecommerce\OrderServiceIntegrationTest.class
